@@ -1,4 +1,4 @@
-import Link from "next/link";
+import LandingActions from "@/components/LandingActions";
 
 export default function Home() {
   return (
@@ -24,19 +24,8 @@ export default function Home() {
               Registra a los novios para comenzar el flujo. Luego podrás crear
               invitados, confirmar asistencia y armar el presupuesto.
             </p>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href="/guests?setup=couple"
-                className="inline-flex h-12 items-center justify-center rounded-full bg-zinc-900 px-6 text-sm font-semibold text-white transition hover:bg-zinc-800"
-              >
-                Crear novios
-              </Link>
-              <Link
-                href="/guests"
-                className="inline-flex h-12 items-center justify-center rounded-full border border-zinc-300 px-6 text-sm font-semibold text-zinc-900 transition hover:border-zinc-400"
-              >
-                Ir a invitados
-              </Link>
+            <div className="mt-6">
+              <LandingActions />
             </div>
           </div>
           <div className="rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
