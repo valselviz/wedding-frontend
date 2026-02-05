@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { avatarKeys, getAvatarUrl } from "@/lib/avatars";
 import type {
   Guest,
   GuestCreateInput,
   AgeRange,
+  Gender,
   GuestSide,
   GuestStatus,
   GuestType,
@@ -14,6 +16,7 @@ type GuestModalProps = {
   open: boolean;
   mode: "create" | "edit";
   initialGuest: Guest | null;
+  mainGuests: Guest[];
   onClose: () => void;
   onSubmit: (input: GuestCreateInput) => void;
 };
@@ -23,7 +26,9 @@ const defaultForm: GuestCreateInput = {
   guest_type: "MAIN_GUEST",
   main_guest_id: null,
   side: "BRIDE",
+  gender: "FEMALE",
   age_range: "ADULT",
+  avatar_key: null,
   notes: "",
   status: "INVITED",
 };
@@ -32,6 +37,7 @@ export default function GuestModal({
   open,
   mode,
   initialGuest,
+  mainGuests,
   onClose,
   onSubmit,
 }: GuestModalProps) {
@@ -39,14 +45,25 @@ export default function GuestModal({
 
   useEffect(() => {
     if (initialGuest) {
-      const { full_name, guest_type, main_guest_id, side, age_range, notes, status } =
-        initialGuest;
+      const {
+        full_name,
+        guest_type,
+        main_guest_id,
+        side,
+        gender,
+        age_range,
+        avatar_key,
+        notes,
+        status,
+      } = initialGuest;
       setForm({
         full_name,
         guest_type,
         main_guest_id,
         side,
+        gender,
         age_range,
+        avatar_key,
         notes: notes ?? "",
         status,
       });
@@ -64,9 +81,18 @@ export default function GuestModal({
     const normalized: GuestCreateInput = {
       ...form,
       notes: form.notes?.trim() ? form.notes.trim() : null,
+      main_guest_id:
+        form.guest_type === "PLUS_ONE" ? form.main_guest_id : null,
     };
     onSubmit(normalized);
   };
+
+  const isAdult = form.age_range === "ADULT";
+  const avatarPrefix =
+    form.gender === "FEMALE" ? (isAdult ? "female" : "girl") : isAdult ? "male" : "boy";
+  const filteredAvatarKeys = avatarKeys.filter((key) =>
+    key.startsWith(`${avatarPrefix}-`),
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4">
@@ -132,6 +158,10 @@ export default function GuestModal({
                   setForm((prev) => ({
                     ...prev,
                     guest_type: event.target.value as GuestType,
+                    main_guest_id:
+                      event.target.value === "PLUS_ONE"
+                        ? prev.main_guest_id
+                        : null,
                   }))
                 }
                 className="h-11 rounded-lg border border-zinc-300 px-3 text-sm"
@@ -142,6 +172,47 @@ export default function GuestModal({
                 <option value="GROOM">Novio</option>
               </select>
             </label>
+            <label className="grid gap-2 text-sm font-medium text-zinc-700">
+              Género
+              <select
+                value={form.gender}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    gender: event.target.value as Gender,
+                  }))
+                }
+                className="h-11 rounded-lg border border-zinc-300 px-3 text-sm"
+              >
+                <option value="FEMALE">Femenino</option>
+                <option value="MALE">Masculino</option>
+              </select>
+            </label>
+            {form.guest_type === "PLUS_ONE" && (
+              <label className="grid gap-2 text-sm font-medium text-zinc-700">
+                Invitado principal
+                <select
+                  required
+                  value={form.main_guest_id ?? ""}
+                  onChange={(event) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      main_guest_id: event.target.value
+                        ? Number(event.target.value)
+                        : null,
+                    }))
+                  }
+                  className="h-11 rounded-lg border border-zinc-300 px-3 text-sm"
+                >
+                  <option value="">Seleccionar</option>
+                  {mainGuests.map((guest) => (
+                    <option key={guest.id} value={guest.id}>
+                      {guest.full_name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             <label className="grid gap-2 text-sm font-medium text-zinc-700">
               Rango de edad
               <select
@@ -176,6 +247,44 @@ export default function GuestModal({
                 <option value="DECLINED">Declinado</option>
               </select>
             </label>
+          </div>
+          <div className="grid gap-2 text-sm font-medium text-zinc-700">
+            Avatar
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => setForm((prev) => ({ ...prev, avatar_key: null }))}
+                className={`h-12 rounded-full border px-4 text-sm font-semibold transition ${
+                  form.avatar_key === null
+                    ? "border-zinc-900 bg-zinc-900 text-white"
+                    : "border-zinc-300 text-zinc-700 hover:border-zinc-400"
+                }`}
+              >
+                Automático
+              </button>
+              {filteredAvatarKeys.map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setForm((prev) => ({ ...prev, avatar_key: key }))}
+                  className={`flex h-12 items-center gap-2 rounded-full border px-3 text-sm font-semibold transition ${
+                    form.avatar_key === key
+                      ? "border-2 border-zinc-900 text-white"
+                      : "border-zinc-300 text-zinc-700 hover:border-zinc-400"
+                  }`}
+                  aria-label={key}
+                >
+                  <img
+                    src={getAvatarUrl(key)}
+                    alt={key}
+                    className="h-8 w-8 rounded-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+            <p className="text-xs font-normal text-zinc-500">
+              Si eliges Automático, se asigna según género y rango de edad.
+            </p>
           </div>
           <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:justify-end">
             <button

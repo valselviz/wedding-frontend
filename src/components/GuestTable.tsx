@@ -1,9 +1,11 @@
 "use client";
 
+import { getAvatarUrl } from "@/lib/avatars";
 import type { Guest } from "@/lib/guests/types";
 
 type GuestTableProps = {
   guests: Guest[];
+  mainGuestNameById: Record<number, string>;
   selectedIds: number[];
   onToggleSelect: (id: number) => void;
   onToggleAll: (selectAll: boolean) => void;
@@ -11,6 +13,7 @@ type GuestTableProps = {
 
 export default function GuestTable({
   guests,
+  mainGuestNameById,
   selectedIds,
   onToggleSelect,
   onToggleAll,
@@ -73,7 +76,6 @@ export default function GuestTable({
             <th className="px-4 py-3">Nombre</th>
             <th className="px-4 py-3">Lado</th>
             <th className="px-4 py-3">Tipo</th>
-            <th className="px-4 py-3">Notas</th>
             <th className="px-4 py-3">Rango de edad</th>
             <th className="px-4 py-3">Estado</th>
           </tr>
@@ -90,13 +92,28 @@ export default function GuestTable({
                 />
               </td>
               <td className="px-4 py-3 font-medium text-zinc-900">
-                {guest.full_name}
+                <div className="flex items-center gap-2">
+                  {guest.avatar_key ? (
+                    <img
+                      src={getAvatarUrl(guest.avatar_key)}
+                      alt={guest.full_name}
+                      className="h-8 w-8 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-8 w-8 rounded-full bg-zinc-100" />
+                  )}
+                  <span>{guest.full_name}</span>
+                  {guest.guest_type === "PLUS_ONE" && (
+                    <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-600">
+                      +1
+                    </span>
+                  )}
+                </div>
               </td>
               <td className="px-4 py-3">
                 {guest.side ? sideLabel(guest.side) : "—"}
               </td>
               <td className="px-4 py-3">{typeLabel(guest.guest_type)}</td>
-              <td className="px-4 py-3">{guest.notes ?? "—"}</td>
               <td className="px-4 py-3">{ageLabel(guest.age_range)}</td>
               <td className="px-4 py-3">{statusLabel(guest.status)}</td>
             </tr>

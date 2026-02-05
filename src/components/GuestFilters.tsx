@@ -6,6 +6,7 @@ export type GuestFiltersValue = {
   side: GuestSide | "all";
   type: GuestType | "all";
   status: GuestStatus | "all";
+  plusOne: "all" | "only";
   order: "name" | "notes";
 };
 
@@ -55,6 +56,19 @@ export default function GuestFilters({ value, onChange }: GuestFiltersProps) {
         <option value="INVITED">Invitado</option>
         <option value="CONFIRMED">Confirmado</option>
         <option value="DECLINED">Declinado</option>
+      </select>
+      <select
+        className="h-10 rounded-lg border border-zinc-300 bg-white px-3 text-sm"
+        value={value.plusOne}
+        onChange={(event) =>
+          onChange({
+            ...value,
+            plusOne: event.target.value as GuestFiltersValue["plusOne"],
+          })
+        }
+      >
+        <option value="all">Todos (incluye +1)</option>
+        <option value="only">Solo acompañantes</option>
       </select>
       <select
         className="h-10 rounded-lg border border-zinc-300 bg-white px-3 text-sm"
