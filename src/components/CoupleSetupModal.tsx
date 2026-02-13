@@ -10,30 +10,38 @@ type CoupleSetupModalProps = {
   onSubmit: (couple: Couple) => void;
 };
 
+const defaultForm: Couple = {
+  bride_name: "",
+  groom_name: "",
+};
+
 export default function CoupleSetupModal({
   open,
   initialCouple,
   onClose,
   onSubmit,
 }: CoupleSetupModalProps) {
-  const [brideName, setBrideName] = useState("");
-  const [groomName, setGroomName] = useState("");
+  const [form, setForm] = useState<Couple>(defaultForm);
 
   useEffect(() => {
-    if (open) {
-      setBrideName(initialCouple?.bride_name ?? "");
-      setGroomName(initialCouple?.groom_name ?? "");
+    if (initialCouple) {
+      setForm(initialCouple);
+      return;
     }
-  }, [open, initialCouple]);
+    setForm(defaultForm);
+  }, [initialCouple, open]);
 
-  if (!open) return null;
+  if (!open) {
+    return null;
+  }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit({
-      bride_name: brideName.trim(),
-      groom_name: groomName.trim(),
-    });
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const normalized: Couple = {
+      bride_name: form.bride_name.trim(),
+      groom_name: form.groom_name.trim(),
+    };
+    onSubmit(normalized);
   };
 
   return (
@@ -41,7 +49,7 @@ export default function CoupleSetupModal({
       <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-lg">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-zinc-900">
-            Datos de los novios
+            Configurar novios
           </h2>
           <button
             type="button"
@@ -55,19 +63,25 @@ export default function CoupleSetupModal({
           <label className="grid gap-2 text-sm font-medium text-zinc-700">
             Nombre de la novia
             <input
-              value={brideName}
-              onChange={(e) => setBrideName(e.target.value)}
+              required
+              value={form.bride_name}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, bride_name: event.target.value }))
+              }
               className="h-11 rounded-lg border border-zinc-300 px-3 text-sm"
-              placeholder="Ej. María"
+              placeholder="Nombre completo"
             />
           </label>
           <label className="grid gap-2 text-sm font-medium text-zinc-700">
             Nombre del novio
             <input
-              value={groomName}
-              onChange={(e) => setGroomName(e.target.value)}
+              required
+              value={form.groom_name}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, groom_name: event.target.value }))
+              }
               className="h-11 rounded-lg border border-zinc-300 px-3 text-sm"
-              placeholder="Ej. Juan"
+              placeholder="Nombre completo"
             />
           </label>
           <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:justify-end">

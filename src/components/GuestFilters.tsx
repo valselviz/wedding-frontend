@@ -1,53 +1,56 @@
 "use client";
 
+import type { GuestSide, GuestType, GuestStatus } from "@/lib/guests/types";
+
 export type GuestFiltersValue = {
-  side: "all" | "BRIDE" | "GROOM";
-  type: "all" | "MAIN_GUEST" | "PLUS_ONE" | "BRIDE" | "GROOM";
-  status: "all" | "INVITED" | "CONFIRMED" | "DECLINED";
+  side: GuestSide | "all";
+  type: GuestType | "all";
+  status: GuestStatus | "all";
+  plusOne: "all" | "only";
   order: "name" | "notes";
 };
 
 type GuestFiltersProps = {
   value: GuestFiltersValue;
-  onChange: (value: GuestFiltersValue) => void;
+  onChange: (next: GuestFiltersValue) => void;
 };
 
 export default function GuestFilters({ value, onChange }: GuestFiltersProps) {
   return (
-    <div className="flex flex-wrap gap-4">
+    <div className="flex flex-wrap items-center gap-3">
       <select
+        className="h-10 rounded-lg border border-zinc-300 bg-white px-3 text-sm"
         value={value.side}
-        onChange={(e) =>
-          onChange({ ...value, side: e.target.value as GuestFiltersValue["side"] })
+        onChange={(event) =>
+          onChange({ ...value, side: event.target.value as GuestFiltersValue["side"] })
         }
-        className="h-10 rounded-lg border border-zinc-300 px-3 text-sm"
       >
         <option value="all">Todos los lados</option>
         <option value="BRIDE">Novia</option>
         <option value="GROOM">Novio</option>
       </select>
       <select
+        className="h-10 rounded-lg border border-zinc-300 bg-white px-3 text-sm"
         value={value.type}
-        onChange={(e) =>
-          onChange({ ...value, type: e.target.value as GuestFiltersValue["type"] })
+        onChange={(event) =>
+          onChange({ ...value, type: event.target.value as GuestFiltersValue["type"] })
         }
-        className="h-10 rounded-lg border border-zinc-300 px-3 text-sm"
       >
         <option value="all">Todos los tipos</option>
-        <option value="MAIN_GUEST">Principal</option>
+        <option value="MAIN_GUEST">Invitado principal</option>
         <option value="PLUS_ONE">Acompañante</option>
         <option value="BRIDE">Novia</option>
         <option value="GROOM">Novio</option>
       </select>
       <select
+        className="h-10 rounded-lg border border-zinc-300 bg-white px-3 text-sm"
         value={value.status}
-        onChange={(e) =>
+        onChange={(event) =>
           onChange({
             ...value,
-            status: e.target.value as GuestFiltersValue["status"],
+            status: event.target.value as GuestFiltersValue["status"],
           })
         }
-        className="h-10 rounded-lg border border-zinc-300 px-3 text-sm"
       >
         <option value="all">Todos los estados</option>
         <option value="INVITED">Invitado</option>
@@ -55,17 +58,27 @@ export default function GuestFilters({ value, onChange }: GuestFiltersProps) {
         <option value="DECLINED">Declinado</option>
       </select>
       <select
-        value={value.order}
-        onChange={(e) =>
+        className="h-10 rounded-lg border border-zinc-300 bg-white px-3 text-sm"
+        value={value.plusOne}
+        onChange={(event) =>
           onChange({
             ...value,
-            order: e.target.value as GuestFiltersValue["order"],
+            plusOne: event.target.value as GuestFiltersValue["plusOne"],
           })
         }
-        className="h-10 rounded-lg border border-zinc-300 px-3 text-sm"
       >
-        <option value="name">Ordenar por nombre</option>
-        <option value="notes">Ordenar por notas</option>
+        <option value="all">Todos (incluye +1)</option>
+        <option value="only">Solo acompañantes</option>
+      </select>
+      <select
+        className="h-10 rounded-lg border border-zinc-300 bg-white px-3 text-sm"
+        value={value.order}
+        onChange={(event) =>
+          onChange({ ...value, order: event.target.value as GuestFiltersValue["order"] })
+        }
+      >
+        <option value="name">Orden: Nombre</option>
+        <option value="notes">Orden: Notas</option>
       </select>
     </div>
   );

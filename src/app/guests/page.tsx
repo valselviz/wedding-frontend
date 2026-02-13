@@ -20,6 +20,7 @@ const defaultFilters: GuestFiltersValue = {
   side: "all",
   type: "all",
   status: "all",
+  plusOne: "all",
   order: "name",
 };
 
@@ -68,6 +69,9 @@ export default function GuestsPage() {
       if (filters.status !== "all" && guest.status !== filters.status) {
         return false;
       }
+      if (filters.plusOne === "only" && guest.guest_type !== "PLUS_ONE") {
+        return false;
+      }
       return true;
     });
 
@@ -80,6 +84,20 @@ export default function GuestsPage() {
 
     return sorted;
   }, [guests, filters]);
+
+  const mainGuests = useMemo(
+    () => guests.filter((guest) => guest.guest_type === "MAIN_GUEST"),
+    [guests],
+  );
+
+  const mainGuestNameById = useMemo(
+    () =>
+      mainGuests.reduce<Record<number, string>>((acc, guest) => {
+        acc[guest.id] = guest.full_name;
+        return acc;
+      }, {}),
+    [mainGuests],
+  );
 
   const handleToggleSelect = (id: number) => {
     setSelectedIds((prev) =>
@@ -193,6 +211,7 @@ export default function GuestsPage() {
 
         <GuestTable
           guests={filteredGuests}
+          mainGuestNameById={mainGuestNameById}
           selectedIds={selectedIds}
           onToggleSelect={handleToggleSelect}
           onToggleAll={handleToggleAll}
@@ -221,6 +240,7 @@ export default function GuestsPage() {
         open={modalOpen}
         mode={editingGuest ? "edit" : "create"}
         initialGuest={editingGuest}
+        mainGuests={mainGuests}
         onClose={() => setModalOpen(false)}
         onSubmit={handleSubmit}
       />
