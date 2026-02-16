@@ -4,9 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import BulkActions from "@/components/BulkActions";
 import CoupleSetupModal from "@/components/CoupleSetupModal";
-import GuestFilters, { GuestFiltersValue } from "@/components/GuestFilters";
+import GuestFiltersModal from "@/components/GuestFiltersModal";
+import GuestSearch from "@/components/GuestSearch";
 import GuestModal from "@/components/GuestModal";
 import GuestTable from "@/components/GuestTable";
+import type { GuestFiltersValue } from "@/components/GuestFilters";
 import {
   loadCoupleSetupSkipped,
   saveCoupleSetupSkipped,
@@ -28,6 +30,8 @@ export default function GuestsPage() {
   const searchParams = useSearchParams();
   const [guests, setGuests] = useState<Guest[]>([]);
   const [filters, setFilters] = useState<GuestFiltersValue>(defaultFilters);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingGuest, setEditingGuest] = useState<Guest | null>(null);
@@ -36,8 +40,20 @@ export default function GuestsPage() {
   const [isCoupleLoading, setIsCoupleLoading] = useState(true);
 
   useEffect(() => {
-    guestService.list().then(setGuests);
-  }, []);
+    const loadGuests = async () => {
+      const params = {
+        search: searchQuery || undefined,
+        side: filters.side !== "all" ? filters.side : undefined,
+        type: filters.type !== "all" ? filters.type : undefined,
+        status: filters.status !== "all" ? filters.status : undefined,
+        plusOne: filters.plusOne,
+        order: filters.order,
+      };
+      const data = await guestService.list(params);
+      setGuests(data);
+    };
+    loadGuests();
+  }, [filters, searchQuery]);
 
   useEffect(() => {
     const shouldSetup = searchParams.get("setup") === "couple";
@@ -58,32 +74,8 @@ export default function GuestsPage() {
       .finally(() => setIsCoupleLoading(false));
   }, [searchParams]);
 
-  const filteredGuests = useMemo(() => {
-    const filtered = guests.filter((guest) => {
-      if (filters.side !== "all" && guest.side !== filters.side) {
-        return false;
-      }
-      if (filters.type !== "all" && guest.guest_type !== filters.type) {
-        return false;
-      }
-      if (filters.status !== "all" && guest.status !== filters.status) {
-        return false;
-      }
-      if (filters.plusOne === "only" && guest.guest_type !== "PLUS_ONE") {
-        return false;
-      }
-      return true;
-    });
-
-    const sorted = [...filtered].sort((a, b) => {
-      if (filters.order === "notes") {
-        return (a.notes ?? "").localeCompare(b.notes ?? "");
-      }
-      return a.full_name.localeCompare(b.full_name);
-    });
-
-    return sorted;
-  }, [guests, filters]);
+  // Los invitados ya vienen filtrados y ordenados del backend
+  const filteredGuests = guests;
 
   const mainGuests = useMemo(
     () => guests.filter((guest) => guest.guest_type === "MAIN_GUEST"),
@@ -128,33 +120,56 @@ export default function GuestsPage() {
     );
     if (!confirmDelete) return;
     await guestService.delete(selectedIds);
-    setGuests((prev) => prev.filter((guest) => !selectedIds.includes(guest.id)));
+    // Recargar la lista desde el backend
+    const params = {
+      search: searchQuery || undefined,
+      side: filters.side !== "all" ? filters.side : undefined,
+      type: filters.type !== "all" ? filters.type : undefined,
+      status: filters.status !== "all" ? filters.status : undefined,
+      plusOne: filters.plusOne,
+      order: filters.order,
+    };
+    const data = await guestService.list(params);
+    setGuests(data);
     setSelectedIds([]);
   };
 
   const handleStatusChange = async (status: GuestStatus) => {
     if (selectedIds.length === 0) return;
-    const updated = await guestService.updateStatus(selectedIds, status);
-    setGuests((prev) =>
-      prev.map((guest) => updated.find((item) => item.id === guest.id) ?? guest),
-    );
+    await guestService.updateStatus(selectedIds, status);
+    // Recargar la lista desde el backend
+    const params = {
+      search: searchQuery || undefined,
+      side: filters.side !== "all" ? filters.side : undefined,
+      type: filters.type !== "all" ? filters.type : undefined,
+      status: filters.status !== "all" ? filters.status : undefined,
+      plusOne: filters.plusOne,
+      order: filters.order,
+    };
+    const data = await guestService.list(params);
+    setGuests(data);
   };
 
   const handleSubmit = async (input: GuestCreateInput) => {
     if (editingGuest) {
-      const updated = await guestService.update({
+      await guestService.update({
         id: editingGuest.id,
         ...input,
       });
-      if (updated) {
-        setGuests((prev) =>
-          prev.map((guest) => (guest.id === updated.id ? updated : guest)),
-        );
-      }
     } else {
-      const created = await guestService.create(input);
-      setGuests((prev) => [created, ...prev]);
+      await guestService.create(input);
     }
+    // Recargar la lista desde el backend
+    const params = {
+      search: searchQuery || undefined,
+      side: filters.side !== "all" ? filters.side : undefined,
+      type: filters.type !== "all" ? filters.type : undefined,
+      status: filters.status !== "all" ? filters.status : undefined,
+      plusOne: filters.plusOne,
+      order: filters.order,
+    };
+    const data = await guestService.list(params);
+    setGuests(data);
     setModalOpen(false);
     setSelectedIds([]);
   };
@@ -175,6 +190,17 @@ export default function GuestsPage() {
     setIsCoupleModalOpen(false);
   };
 
+  const handleClearFilters = () => {
+    setFilters(defaultFilters);
+  };
+
+  const hasActiveFilters =
+    filters.side !== "all" ||
+    filters.type !== "all" ||
+    filters.status !== "all" ||
+    filters.plusOne !== "all" ||
+    filters.order !== "name";
+
   return (
     <div className="min-h-screen bg-zinc-50 px-6 py-10 text-zinc-900">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
@@ -192,16 +218,40 @@ export default function GuestsPage() {
         </header>
 
         <div className="flex flex-col gap-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <GuestFilters value={filters} onChange={setFilters} />
-            <BulkActions
-              selectedCount={selectedIds.length}
-              onCreate={openCreate}
-              onEdit={openEdit}
-              onConfirm={() => handleStatusChange("CONFIRMED")}
-              onDecline={() => handleStatusChange("DECLINED")}
-              onDelete={handleDelete}
-            />
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-3">
+            <GuestSearch value={searchQuery} onChange={setSearchQuery} />
+            <button
+              type="button"
+              onClick={() => setIsFiltersModalOpen(true)}
+              className={`h-10 rounded-lg border px-4 text-sm font-semibold transition ${
+                hasActiveFilters
+                  ? "border-zinc-900 bg-zinc-900 text-white hover:bg-zinc-800"
+                  : "border-zinc-300 bg-white text-zinc-900 hover:border-zinc-400"
+              }`}
+            >
+              Filtrar
+              {hasActiveFilters && (
+                <span className="ml-2 rounded-full bg-white/20 px-1.5 py-0.5 text-xs">
+                  {[
+                    filters.side !== "all",
+                    filters.type !== "all",
+                    filters.status !== "all",
+                    filters.plusOne !== "all",
+                    filters.order !== "name",
+                  ].filter(Boolean).length}
+                </span>
+              )}
+            </button>
+            <div className="lg:ml-auto">
+              <BulkActions
+                selectedCount={selectedIds.length}
+                onCreate={openCreate}
+                onEdit={openEdit}
+                onConfirm={() => handleStatusChange("CONFIRMED")}
+                onDecline={() => handleStatusChange("DECLINED")}
+                onDelete={handleDelete}
+              />
+            </div>
           </div>
           <div className="text-xs text-zinc-500">
             {filteredGuests.length} invitados con los filtros actuales ·{" "}
@@ -228,6 +278,14 @@ export default function GuestsPage() {
           {isCoupleLoading ? "Cargando..." : "Editar novios"}
         </button>
       </div>
+
+      <GuestFiltersModal
+        open={isFiltersModalOpen}
+        filters={filters}
+        onClose={() => setIsFiltersModalOpen(false)}
+        onChange={setFilters}
+        onClear={handleClearFilters}
+      />
 
       <CoupleSetupModal
         open={isCoupleModalOpen}

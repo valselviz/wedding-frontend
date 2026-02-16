@@ -29,38 +29,39 @@ export default function BulkActions({
       >
         Crear invitado
       </button>
-      <button
-        type="button"
-        onClick={onEdit}
-        disabled={!singleSelection}
-        className="h-10 rounded-full border border-zinc-300 px-4 text-sm font-semibold text-zinc-900 transition hover:border-zinc-400 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        Editar
-      </button>
-      <button
-        type="button"
-        onClick={onConfirm}
-        disabled={!hasSelection}
-        className="h-10 rounded-full border border-zinc-300 px-4 text-sm font-semibold text-zinc-900 transition hover:border-zinc-400 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        Confirmar
-      </button>
-      <button
-        type="button"
-        onClick={onDecline}
-        disabled={!hasSelection}
-        className="h-10 rounded-full border border-zinc-300 px-4 text-sm font-semibold text-zinc-900 transition hover:border-zinc-400 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        Declinar
-      </button>
-      <button
-        type="button"
-        onClick={onDelete}
-        disabled={!hasSelection}
-        className="h-10 rounded-full border border-red-200 px-4 text-sm font-semibold text-red-600 transition hover:border-red-300 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        Borrar
-      </button>
+      {hasSelection && (
+        <>
+          <button
+            type="button"
+            onClick={onEdit}
+            disabled={!singleSelection}
+            className="h-10 rounded-full border border-zinc-300 px-4 text-sm font-semibold text-zinc-900 transition hover:border-zinc-400 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Editar
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="h-10 rounded-full border border-zinc-300 px-4 text-sm font-semibold text-zinc-900 transition hover:border-zinc-400"
+          >
+            Confirmar
+          </button>
+          <button
+            type="button"
+            onClick={onDecline}
+            className="h-10 rounded-full border border-zinc-300 px-4 text-sm font-semibold text-zinc-900 transition hover:border-zinc-400"
+          >
+            Declinar
+          </button>
+          <button
+            type="button"
+            onClick={onDelete}
+            className="h-10 rounded-full border border-red-200 px-4 text-sm font-semibold text-red-600 transition hover:border-red-300"
+          >
+            Borrar
+          </button>
+        </>
+      )}
     </div>
   );
 }

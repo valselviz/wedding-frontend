@@ -3,6 +3,8 @@ import type {
   GuestCreateInput,
   GuestUpdateInput,
   GuestStatus,
+  GuestSide,
+  GuestType,
 } from "./types";
 
 const API_BASE_URL =
@@ -33,9 +35,45 @@ const request = async <T>(
   return (await response.json()) as T;
 };
 
+export type GuestListParams = {
+  search?: string;
+  side?: GuestSide;
+  type?: GuestType;
+  status?: GuestStatus;
+  plusOne?: "all" | "only";
+  order?: "name" | "notes";
+};
+
+const buildQueryString = (params: GuestListParams): string => {
+  const searchParams = new URLSearchParams();
+  
+  if (params.search) {
+    searchParams.append("search", params.search);
+  }
+  if (params.side && params.side !== "all") {
+    searchParams.append("side", params.side);
+  }
+  if (params.type && params.type !== "all") {
+    searchParams.append("type", params.type);
+  }
+  if (params.status && params.status !== "all") {
+    searchParams.append("status", params.status);
+  }
+  if (params.plusOne && params.plusOne !== "all") {
+    searchParams.append("plusOne", params.plusOne);
+  }
+  if (params.order) {
+    searchParams.append("order", params.order);
+  }
+  
+  const query = searchParams.toString();
+  return query ? `?${query}` : "";
+};
+
 export const guestService = {
-  async list(): Promise<Guest[]> {
-    return request<Guest[]>("/guests");
+  async list(params?: GuestListParams): Promise<Guest[]> {
+    const query = params ? buildQueryString(params) : "";
+    return request<Guest[]>(`/guests${query}`);
   },
   async create(input: GuestCreateInput): Promise<Guest> {
     return request<Guest>("/guests", {
