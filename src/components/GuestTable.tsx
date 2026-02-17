@@ -9,6 +9,8 @@ type GuestTableProps = {
   selectedIds: number[];
   onToggleSelect: (id: number) => void;
   onToggleAll: (selectAll: boolean) => void;
+  onEdit: (guest: Guest) => void;
+  onAddPlusOne: (guest: Guest) => void;
 };
 
 export default function GuestTable({
@@ -17,6 +19,8 @@ export default function GuestTable({
   selectedIds,
   onToggleSelect,
   onToggleAll,
+  onEdit,
+  onAddPlusOne,
 }: GuestTableProps) {
   const allSelected = guests.length > 0 && selectedIds.length === guests.length;
   const sideLabel = (side: Guest["side"]) =>
@@ -78,6 +82,7 @@ export default function GuestTable({
             <th className="px-4 py-3">Tipo</th>
             <th className="px-4 py-3">Rango de edad</th>
             <th className="px-4 py-3">Estado</th>
+            <th className="px-4 py-3">Acciones</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-zinc-100 text-zinc-700">
@@ -116,6 +121,27 @@ export default function GuestTable({
               <td className="px-4 py-3">{typeLabel(guest.guest_type)}</td>
               <td className="px-4 py-3">{ageLabel(guest.age_range)}</td>
               <td className="px-4 py-3">{statusLabel(guest.status)}</td>
+              <td className="px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => onEdit(guest)}
+                    className="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 transition hover:border-zinc-400 hover:bg-zinc-50"
+                  >
+                    Editar
+                  </button>
+                  {guest.guest_type === "MAIN_GUEST" && (
+                    <button
+                      type="button"
+                      onClick={() => onAddPlusOne(guest)}
+                      className="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 transition hover:border-zinc-400 hover:bg-zinc-50"
+                      title="Agregar acompañante"
+                    >
+                      +1
+                    </button>
+                  )}
+                </div>
+              </td>
             </tr>
           ))}
         </tbody>

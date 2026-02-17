@@ -106,10 +106,26 @@ export default function GuestsPage() {
     setModalOpen(true);
   };
 
-  const openEdit = () => {
-    if (selectedIds.length === 0) return;
-    const guest = guests.find((item) => item.id === selectedIds[0]) ?? null;
+  const handleEdit = (guest: Guest) => {
     setEditingGuest(guest);
+    setModalOpen(true);
+  };
+
+  const handleAddPlusOne = (mainGuest: Guest) => {
+    // Crear un nuevo invitado +1 asociado al invitado principal
+    // Usamos un objeto Guest temporal con id 0 para que el modal lo trate como nuevo
+    const plusOneGuest: Guest = {
+      id: 0,
+      full_name: "",
+      guest_type: "PLUS_ONE",
+      main_guest_id: mainGuest.id,
+      side: mainGuest.side,
+      gender: "FEMALE", // Valor por defecto, el usuario puede cambiarlo en el modal
+      age_range: "ADULT",
+      notes: null,
+      status: "INVITED",
+    };
+    setEditingGuest(plusOneGuest);
     setModalOpen(true);
   };
 
@@ -151,7 +167,8 @@ export default function GuestsPage() {
   };
 
   const handleSubmit = async (input: GuestCreateInput) => {
-    if (editingGuest) {
+    // id 0 = invitado nuevo (ej. +1 desde el botón); solo actualizar si tiene id real
+    if (editingGuest && editingGuest.id !== 0) {
       await guestService.update({
         id: editingGuest.id,
         ...input,
@@ -243,14 +260,13 @@ export default function GuestsPage() {
               )}
             </button>
             <div className="lg:ml-auto">
-              <BulkActions
-                selectedCount={selectedIds.length}
-                onCreate={openCreate}
-                onEdit={openEdit}
-                onConfirm={() => handleStatusChange("CONFIRMED")}
-                onDecline={() => handleStatusChange("DECLINED")}
-                onDelete={handleDelete}
-              />
+            <BulkActions
+              selectedCount={selectedIds.length}
+              onCreate={openCreate}
+              onConfirm={() => handleStatusChange("CONFIRMED")}
+              onDecline={() => handleStatusChange("DECLINED")}
+              onDelete={handleDelete}
+            />
             </div>
           </div>
           <div className="text-xs text-zinc-500">
@@ -265,6 +281,8 @@ export default function GuestsPage() {
           selectedIds={selectedIds}
           onToggleSelect={handleToggleSelect}
           onToggleAll={handleToggleAll}
+          onEdit={handleEdit}
+          onAddPlusOne={handleAddPlusOne}
         />
       </div>
 
@@ -296,10 +314,13 @@ export default function GuestsPage() {
 
       <GuestModal
         open={modalOpen}
-        mode={editingGuest ? "edit" : "create"}
+        mode={editingGuest && editingGuest.id !== 0 ? "edit" : "create"}
         initialGuest={editingGuest}
         mainGuests={mainGuests}
-        onClose={() => setModalOpen(false)}
+        onClose={() => {
+          setModalOpen(false);
+          setEditingGuest(null);
+        }}
         onSubmit={handleSubmit}
       />
     </div>
