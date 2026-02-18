@@ -6,6 +6,7 @@ type BulkActionsProps = {
   onConfirm: () => void;
   onDecline: () => void;
   onDelete: () => void;
+  onAddToGroup: () => void;
 };
 
 export default function BulkActions({
@@ -14,6 +15,7 @@ export default function BulkActions({
   onConfirm,
   onDecline,
   onDelete,
+  onAddToGroup,
 }: BulkActionsProps) {
   const hasSelection = selectedCount > 0;
 
@@ -28,6 +30,13 @@ export default function BulkActions({
       </button>
       {hasSelection && (
         <>
+          <button
+            type="button"
+            onClick={onAddToGroup}
+            className="h-10 rounded-full border border-zinc-300 px-4 text-sm font-semibold text-zinc-900 transition hover:border-zinc-400"
+          >
+            Agregar a grupo
+          </button>
           <button
             type="button"
             onClick={onConfirm}

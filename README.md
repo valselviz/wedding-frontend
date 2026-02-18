@@ -1,36 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Frontend - Wedding Management System
 
-## Getting Started
+Web interface for managing guests, groups, and tables for a wedding. Built with Next.js 16 and React.
 
-First, run the development server:
+## What does this project do?
+
+Web application that allows you to:
+- **Manage guests**: create, edit, search, and filter guests. Confirm or decline attendance in bulk.
+- **Organize groups**: create groups of guests (family, friends, etc.) and assign members.
+- **Assign tables**: (future functionality) distribute guests to tables automatically or manually.
+
+## Requirements
+
+- Node.js 18 or higher
+- Backend must be running on `http://localhost:3000` (or configure `NEXT_PUBLIC_API_URL`)
+
+## Setup
+
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
+### 2. Configure API (optional)
+
+If the backend runs on a different port or URL, create a `.env.local`:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3000
+```
+
+Defaults to `http://localhost:3000`.
+
+### 3. Start development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3001](http://localhost:3001) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Commands
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `npm run dev` - Development server (port 3001)
+- `npm run build` - Build app for production
+- `npm run start` - Run compiled version
+- `npm run lint` - Run linter
 
-## Learn More
+## Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+├── app/
+│   ├── page.tsx           # Home page
+│   ├── guests/
+│   │   └── page.tsx      # Guest list
+│   └── groups/
+│       └── page.tsx      # Group list
+├── components/           # Reusable components
+│   ├── GuestTable.tsx
+│   ├── GroupModal.tsx
+│   └── ...
+└── lib/
+    ├── guests/           # Guest services and types
+    ├── groups/           # Group services and types
+    └── couple/           # Couple data management
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Main Pages
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `/` - Home page with guest summary and quick access
+- `/guests` - Complete guest management (search, filters, bulk actions)
+- `/groups` - Guest group management
 
-## Deploy on Vercel
+## Main Features
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Home dashboard**: summary with totals of guests, confirmed, pending, and plus-ones
+- **Smart search**: search by guest name or main guest name (if +1)
+- **Advanced filters**: filter by side (bride/groom), type, status, plus-ones, and sort by name or notes
+- **Bulk actions**: select multiple guests to confirm, decline, add to groups, or delete
+- **Group management**: organize guests into groups with categories (family, friends, work, etc.)
+- **Plus-ones (+1)**: add plus-ones directly from the main guest list
+- **Couple data**: configure and edit couple names from any page
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Technologies
+
+- Next.js 16 (App Router)
+- React 19
+- TypeScript
+- Tailwind CSS
+- Fetch API for backend communication

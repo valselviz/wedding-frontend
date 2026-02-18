@@ -8,6 +8,7 @@ import GuestFiltersModal from "@/components/GuestFiltersModal";
 import GuestSearch from "@/components/GuestSearch";
 import GuestModal from "@/components/GuestModal";
 import GuestTable from "@/components/GuestTable";
+import AddToGroupModal from "@/components/AddToGroupModal";
 import type { GuestFiltersValue } from "@/components/GuestFilters";
 import {
   loadCoupleSetupSkipped,
@@ -38,6 +39,7 @@ export default function GuestsPage() {
   const [couple, setCouple] = useState<Couple | null>(null);
   const [isCoupleModalOpen, setIsCoupleModalOpen] = useState(false);
   const [isCoupleLoading, setIsCoupleLoading] = useState(true);
+  const [isAddToGroupModalOpen, setIsAddToGroupModalOpen] = useState(false);
 
   useEffect(() => {
     const loadGuests = async () => {
@@ -74,7 +76,7 @@ export default function GuestsPage() {
       .finally(() => setIsCoupleLoading(false));
   }, [searchParams]);
 
-  // Los invitados ya vienen filtrados y ordenados del backend
+  // Guests already come filtered and sorted from backend
   const filteredGuests = guests;
 
   const mainGuests = useMemo(
@@ -167,7 +169,7 @@ export default function GuestsPage() {
   };
 
   const handleSubmit = async (input: GuestCreateInput) => {
-    // id 0 = invitado nuevo (ej. +1 desde el botón); solo actualizar si tiene id real
+    // id 0 = new guest (e.g. +1 from button); only update if it has a real id
     if (editingGuest && editingGuest.id !== 0) {
       await guestService.update({
         id: editingGuest.id,
@@ -263,6 +265,7 @@ export default function GuestsPage() {
             <BulkActions
               selectedCount={selectedIds.length}
               onCreate={openCreate}
+              onAddToGroup={() => setIsAddToGroupModalOpen(true)}
               onConfirm={() => handleStatusChange("CONFIRMED")}
               onDecline={() => handleStatusChange("DECLINED")}
               onDelete={handleDelete}
@@ -322,6 +325,16 @@ export default function GuestsPage() {
           setEditingGuest(null);
         }}
         onSubmit={handleSubmit}
+      />
+
+      <AddToGroupModal
+        open={isAddToGroupModalOpen}
+        guestIds={selectedIds}
+        onClose={() => setIsAddToGroupModalOpen(false)}
+        onSuccess={() => {
+          setIsAddToGroupModalOpen(false);
+          setSelectedIds([]);
+        }}
       />
     </div>
   );
